@@ -12,6 +12,7 @@ const pub = (u) => ({ id: u.id, name: u.name, email: u.email, role: u.role });
 const schema = z.object({
   name: z.string().trim().min(2).max(80),
   email: z.string().trim().toLowerCase().email(),
+  phone: z.string().trim().max(24).optional(),
   password: z.string().min(8).max(100),
   role: z.enum(['PATIENT', 'DOCTOR']).default('PATIENT'),
   doctor: z
@@ -34,12 +35,16 @@ r.post('/register', limiter, async (req, res) => {
   }
   const d = p.data;
   if (d.role === 'DOCTOR' && !d.doctor) return res.status(400).json({ error: 'Doctor details are required' });
+  const phone = String(d.phone || '').replace(/[\\s()-]/g, '');
+  if (d.role === 'DOCTOR' && !/^\\+?[1-9]\\d{7,14}$/.test(phone)) return res.status(400).json({ error: 'Doctors must provide a valid phone number with country code, e.g. +919876543210' });
+  if (phone && !/^\\+?[1-9]\\d{7,14}$/.test(phone)) return res.status(400).json({ error: 'Enter a valid phone number with country code, e.g. +919876543210' });
   if (await prisma.user.findUnique({ where: { email: d.email } }))
     return res.status(409).json({ error: 'That email is already registered' });
   const u = await prisma.user.create({
     data: {
       name: d.name,
       email: d.email,
+      phone: phone || null,
       passwordHash: await bcrypt.hash(d.password, 11),
       role: d.role,
       ...(d.role === 'DOCTOR' ? { doctor: { create: d.doctor } } : {}), // status defaults to PENDING
