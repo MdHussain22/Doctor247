@@ -16,8 +16,10 @@ r.post('/verify', auth, role('PATIENT'), async (req, res) => {
   if (!mine) return res.status(404).json({ error: 'Order not found' });
   if (cfg.mock || !safeEq(hmac(cfg.rzp.secret, `${orderId}|${paymentId}`), sig || ''))
     return res.status(400).json({ error: 'Payment signature mismatch' });
-  await confirmPayment(orderId, paymentId);
-  res.json({ ok: true });
+  const result = await confirmPayment(orderId, paymentId);
+  if (result.error) return res.status(404).json({ error: result.error });
+  if (result.late) return res.status(409).json({ error: 'Payment arrived after the booking hold expired. A refund has been initiated; please book another slot.' });
+  res.json({ ok: true, duplicate: Boolean(result.duplicate) });
 });
 
 // Test-mode "Pay" button. Disabled automatically when PAYMENT_MODE=razorpay.
