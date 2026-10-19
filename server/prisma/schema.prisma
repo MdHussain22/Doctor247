@@ -100,6 +100,7 @@ model Appointment {
   status    AppointmentStatus @default(PENDING_PAYMENT)
   notes     String?
   meetUrl   String?
+  googleEventId String?
   createdAt DateTime          @default(now())
   payment   Payment?
   messages  Message[]
