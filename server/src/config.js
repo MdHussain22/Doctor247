@@ -11,4 +11,4 @@ export const cfg = {
   cutoff: Number(e.REFUND_CUTOFF_HOURS) || 2,
 };
 if (cfg.prod && cfg.jwt === 'dev-secret-change-me') throw new Error('Set JWT_SECRET in production');
-if (!cfg.mock && !(cfg.rzp.id && cfg.rzp.secret)) throw new Error('PAYMENT_MODE=razorpay needs RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET');
+if (!cfg.mock && !(cfg.rzp.id && cfg.rzp.secret && cfg.rzp.hook)) throw new Error('PAYMENT_MODE=razorpay needs RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, and RAZORPAY_WEBHOOK_SECRET');
