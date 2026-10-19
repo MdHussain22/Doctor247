@@ -12,18 +12,25 @@ r.use(async (req, res, next) => {
 
 r.get('/me', (req, res) => {
   const { id, specialty, qualification, registrationNo, experienceYears, languages, bio, fee, status, rejectionReason } = req.doctor;
-  res.json({ id, specialty, qualification, registrationNo, experienceYears, languages, bio, fee, status, rejectionReason });
+  res.json({ id, specialty, qualification, registrationNo, experienceYears, languages, bio, fee, status, rejectionReason, phone: req.user.phone || '' });
 });
 
 const patch = z.object({
   fee: z.coerce.number().int().min(1).max(100000).optional(),
   languages: z.string().trim().max(100).optional(),
   bio: z.string().trim().max(600).optional(),
+  phone: z.string().trim().max(24).optional(),
 });
 r.patch('/me', async (req, res) => {
   const p = patch.safeParse(req.body);
   if (!p.success) return res.status(400).json({ error: p.error.issues[0].message });
-  await prisma.doctor.update({ where: { id: req.doctor.id }, data: p.data });
+  const phone = p.data.phone === undefined ? undefined : p.data.phone.replace(/[\s()-]/g, '');
+  if (phone !== undefined && phone && !/^\+?[1-9]\d{7,14}$/.test(phone)) return res.status(400).json({ error: 'Enter a valid phone number with country code, e.g. +919876543210' });
+  const { phone: _phone, ...doctorData } = p.data;
+  await prisma.$transaction(async (tx) => {
+    await tx.doctor.update({ where: { id: req.doctor.id }, data: doctorData });
+    if (phone !== undefined) await tx.user.update({ where: { id: req.user.id }, data: { phone: phone || null } });
+  });
   res.json({ ok: true });
 });
 
@@ -61,7 +68,7 @@ r.get('/appointments', async (req, res) => {
     orderBy: { startsAt: 'desc' },
     take: 100,
   });
-  res.json(list.map((a) => ({ id: a.id, startsAt: a.startsAt, status: a.status, fee: a.fee, patientName: a.patient.name, notes: a.notes })));
+  res.json(list.map((a) => ({ id: a.id, startsAt: a.startsAt, status: a.status, fee: a.fee, patientName: a.patient.name, notes: a.notes, meetUrl: a.meetUrl })));
 });
 
 r.post('/appointments/:id/start', async (req, res) => {
