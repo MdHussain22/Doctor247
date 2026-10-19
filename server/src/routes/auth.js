@@ -35,9 +35,9 @@ r.post('/register', limiter, async (req, res) => {
   }
   const d = p.data;
   if (d.role === 'DOCTOR' && !d.doctor) return res.status(400).json({ error: 'Doctor details are required' });
-  const phone = String(d.phone || '').replace(/[\\s()-]/g, '');
-  if (d.role === 'DOCTOR' && !/^\\+?[1-9]\\d{7,14}$/.test(phone)) return res.status(400).json({ error: 'Doctors must provide a valid phone number with country code, e.g. +919876543210' });
-  if (phone && !/^\\+?[1-9]\\d{7,14}$/.test(phone)) return res.status(400).json({ error: 'Enter a valid phone number with country code, e.g. +919876543210' });
+  const phone = String(d.phone || '').replace(/[\s()-]/g, '');
+  if (d.role === 'DOCTOR' && !/^\+?[1-9]\d{7,14}$/.test(phone)) return res.status(400).json({ error: 'Doctors must provide a valid phone number with country code, e.g. +919876543210' });
+  if (phone && !/^\+?[1-9]\d{7,14}$/.test(phone)) return res.status(400).json({ error: 'Enter a valid phone number with country code, e.g. +919876543210' });
   if (await prisma.user.findUnique({ where: { email: d.email } }))
     return res.status(409).json({ error: 'That email is already registered' });
   const u = await prisma.user.create({
