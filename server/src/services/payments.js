@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import { cfg } from '../config.js';
 import { prisma, audit } from '../db.js';
+import { notifyAppointmentConfirmed } from './notifications.js';
 
 const rzp = !cfg.mock ? new Razorpay({ key_id: cfg.rzp.id, key_secret: cfg.rzp.secret }) : null;
 
@@ -44,12 +45,13 @@ export async function confirmPayment(orderId, paymentId) {
     if (u.count === 0) return { late: true, appointmentId: p.appointmentId }; // slot hold expired
     const appt = await tx.appointment.findUnique({ where: { id: p.appointmentId } });
     await tx.slot.update({ where: { id: appt.slotId }, data: { status: 'BOOKED', heldUntil: null } });
-    return { confirmed: true, paymentRowId: p.id };
+    return { confirmed: true, paymentRowId: p.id, appointmentId: appt.id };
   });
   if (out.late) {
     await refund(out.appointmentId, 'LATE_PAYMENT');
   } else if (out.confirmed) {
     await audit(null, 'PAYMENT_CONFIRMED', 'Payment', out.paymentRowId, { orderId, paymentId });
+    await notifyAppointmentConfirmed(out.appointmentId);
   }
   return out;
 }
