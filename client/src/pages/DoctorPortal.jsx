@@ -30,6 +30,7 @@ export default function DoctorPortal() {
         <form className="c" key={me.id + me.fee} onSubmit={(e) => { e.preventDefault(); run(() => api('/doctor/me', { method: 'PATCH', body: Object.fromEntries(new FormData(e.target)) }), 'Profile saved'); }}>
           <h3>Profile and fee</h3>
           <label>Consultation fee (₹)<input name="fee" type="number" min="1" defaultValue={me.fee} /></label>
+          <label>Contact phone (include country code)<input name="phone" type="tel" required defaultValue={me.phone || ''} placeholder="+919876543210" /></label>
           <label>Languages<input name="languages" defaultValue={me.languages} /></label>
           <label>About you<textarea name="bio" rows="3" defaultValue={me.bio || ''} /></label>
           <button className="p">Save profile</button>
@@ -56,6 +57,7 @@ export default function DoctorPortal() {
         <div className="c" key={a.id}>
           <div className="row"><b>{a.patientName}</b><Badge s={a.status} /></div>
           <p className="m">{when(a.startsAt)}, {inr(a.fee)}</p>
+          {a.meetUrl && <p><b>Google Meet:</b> <a href={a.meetUrl} target="_blank" rel="noreferrer">Join consultation</a></p>}
           {a.notes && <p><b>Notes:</b> {a.notes}</p>}
           <div className="row">
             {(a.status === 'CONFIRMED' || a.status === 'IN_PROGRESS') && <button onClick={() => setChat(a.id)}>Open chat</button>}
