@@ -1,0 +1,15 @@
+# Local PostgreSQL:  docker compose up -d
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mediconnect
+    ports:
+      - "5432:5432"
+    volumes:
+      - mediconnect-data:/var/lib/postgresql/data
+volumes:
+  mediconnect-data:

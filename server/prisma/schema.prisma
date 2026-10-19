@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+enum SlotStatus {
+  FREE
+  HELD
+  BOOKED
+}
+enum AppointmentStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  NO_SHOW
+}
+enum PaymentStatus {
+  CREATED
+  PAID
+  REFUNDED
+  FAILED
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(PATIENT)
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  doctor       Doctor?
+  appointments Appointment[]
+  messages     Message[]
+}
+
+model Doctor {
+  id              String             @id @default(cuid())
+  userId          String             @unique
+  user            User               @relation(fields: [userId], references: [id])
+  specialty       String
+  qualification   String
+  registrationNo  String             @unique
+  experienceYears Int                @default(0)
+  languages       String             @default("English")
+  bio             String?
+  fee             Int
+  status          VerificationStatus @default(PENDING)
+  rejectionReason String?
+  verifiedAt      DateTime?
+  verifiedById    String?
+  createdAt       DateTime           @default(now())
+  slots           Slot[]
+  appointments    Appointment[]
+
+  @@index([status, specialty])
+}
+
+model Slot {
+  id           String        @id @default(cuid())
+  doctorId     String
+  doctor       Doctor        @relation(fields: [doctorId], references: [id])
+  startsAt     DateTime
+  status       SlotStatus    @default(FREE)
+  heldUntil    DateTime?
+  appointments Appointment[]
+
+  @@unique([doctorId, startsAt])
+  @@index([doctorId, startsAt])
+}
+
+model Appointment {
+  id        String            @id @default(cuid())
+  patientId String
+  patient   User              @relation(fields: [patientId], references: [id])
+  doctorId  String
+  doctor    Doctor            @relation(fields: [doctorId], references: [id])
+  slotId    String
+  slot      Slot              @relation(fields: [slotId], references: [id])
+  startsAt  DateTime
+  fee       Int
+  status    AppointmentStatus @default(PENDING_PAYMENT)
+  notes     String?
+  createdAt DateTime          @default(now())
+  payment   Payment?
+  messages  Message[]
+
+  @@index([patientId])
+  @@index([doctorId, status])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  appointmentId String        @unique
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id])
+  orderId       String        @unique
+  paymentId     String?       @unique
+  amount        Int
+  status        PaymentStatus @default(CREATED)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+}
+
+model Message {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  senderId      String
+  sender        User        @relation(fields: [senderId], references: [id])
+  body          String
+  createdAt     DateTime    @default(now())
+
+  @@index([appointmentId, createdAt])
+}
+
+model WebhookEvent {
+  id        String   @id
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Setting {
+  key   String @id
+  value String
+}
