@@ -7,7 +7,7 @@ export default function Register() {
   const { register } = useAuth();
   const nav = useNavigate();
   const [role, setRole] = useState('PATIENT');
-  const [f, setF] = useState({ name: '', email: '', password: '' });
+  const [f, setF] = useState({ name: '', email: '', password: '', phone: '' });
   const [d, setD] = useState({ specialty: '', qualification: '', registrationNo: '', fee: 500, experienceYears: 0, languages: 'English' });
   const [busy, setBusy] = useState(false);
   const set = (o, fn) => (k) => (e) => fn({ ...o, [k]: e.target.value });
@@ -32,6 +32,7 @@ export default function Register() {
       </div>
       <label>Full name<input required value={f.name} onChange={onF('name')} /></label>
       <label>Email<input type="email" required value={f.email} onChange={onF('email')} /></label>
+      <label>Phone number {role === 'DOCTOR' ? '(required, include country code)' : '(optional)'}<input type="tel" required={role === 'DOCTOR'} placeholder="+919876543210" value={f.phone} onChange={onF('phone')} /></label>
       <label>Password (8+ characters)<input type="password" minLength={8} required value={f.password} onChange={onF('password')} /></label>
       {role === 'DOCTOR' && (
         <>
