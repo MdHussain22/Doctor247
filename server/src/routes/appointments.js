@@ -7,14 +7,19 @@ import { createOrder, refund } from '../services/payments.js';
 const r = Router();
 r.use(auth);
 
-const include = { doctor: { include: { user: { select: { name: true } } } }, payment: true };
+const include = { doctor: { include: { user: { select: { name: true, phone: true } } } }, payment: true };
 const shape = (a) => ({
   id: a.id,
   startsAt: a.startsAt,
   status: a.status,
   fee: a.fee,
   notes: a.status === 'COMPLETED' ? a.notes : null,
-  doctor: { name: a.doctor.user.name, specialty: a.doctor.specialty },
+  doctor: {
+    name: a.doctor.user.name,
+    specialty: a.doctor.specialty,
+    phone: a.payment?.status === 'PAID' && !['CANCELLED', 'REFUNDED'].includes(a.status) ? a.doctor.user.phone : null,
+  },
+  meetUrl: a.payment?.status === 'PAID' && !['CANCELLED', 'REFUNDED'].includes(a.status) ? a.meetUrl : null,
   paymentStatus: a.payment?.status || null,
 });
 
