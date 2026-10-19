@@ -28,32 +28,53 @@ async function createGoogleMeet(appointment) {
     return null;
   }
   const calendarId = encodeURIComponent(env.GOOGLE_CALENDAR_ID || 'primary');
-  const end = new Date(appointment.startsAt.getTime() + 30 * 60 * 1000);
-  const attendees = [
-    { email: appointment.patient.email, displayName: appointment.patient.name },
-    { email: appointment.doctor.user.email, displayName: appointment.doctor.user.name },
-  ];
-  const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/' + calendarId + '/events?conferenceDataVersion=1&sendUpdates=all', {
-    method: 'POST',
-    headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      summary: 'Doctor247 consultation — ' + appointment.doctor.user.name + ' and ' + appointment.patient.name,
-      description: 'Doctor247 appointment ID: ' + appointment.id + '. Please do not share this private meeting link.',
-      start: { dateTime: appointment.startsAt.toISOString(), timeZone: 'Asia/Kolkata' },
-      end: { dateTime: end.toISOString(), timeZone: 'Asia/Kolkata' },
-      attendees,
-      conferenceData: {
-        createRequest: {
-          requestId: 'doctor247-' + appointment.id,
-          conferenceSolutionKey: { type: 'hangoutsMeet' },
+  const eventUrl = (eventId) => 'https://www.googleapis.com/calendar/v3/calendars/' + calendarId + '/events/' + encodeURIComponent(eventId);
+  const getEvent = async (eventId) => {
+    const response = await fetch(eventUrl(eventId), { headers: { authorization: 'Bearer ' + token } });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error?.message || 'Could not read Google Calendar event');
+    return data;
+  };
+  let event;
+  if (appointment.googleEventId) {
+    event = await getEvent(appointment.googleEventId);
+  } else {
+    const end = new Date(appointment.startsAt.getTime() + 30 * 60 * 1000);
+    const attendees = [
+      { email: appointment.patient.email, displayName: appointment.patient.name },
+      { email: appointment.doctor.user.email, displayName: appointment.doctor.user.name },
+    ];
+    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/' + calendarId + '/events?conferenceDataVersion=1&sendUpdates=all', {
+      method: 'POST',
+      headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        summary: 'Doctor247 consultation — ' + appointment.doctor.user.name + ' and ' + appointment.patient.name,
+        description: 'Doctor247 appointment ID: ' + appointment.id + '. Please do not share this private meeting link.',
+        start: { dateTime: appointment.startsAt.toISOString(), timeZone: 'Asia/Kolkata' },
+        end: { dateTime: end.toISOString(), timeZone: 'Asia/Kolkata' },
+        attendees,
+        conferenceData: {
+          createRequest: {
+            requestId: 'doctor247-' + appointment.id,
+            conferenceSolutionKey: { type: 'hangoutsMeet' },
+          },
         },
-      },
-    }),
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || 'Google Calendar event creation failed');
-  const meetUrl = data.hangoutLink || data.conferenceData?.entryPoints?.find((p) => p.entryPointType === 'video')?.uri || null;
-  if (!meetUrl) throw new Error('Google Calendar created an event but did not return a Meet link');
+      }),
+    });
+    event = await response.json();
+    if (!response.ok || !event.id) throw new Error(event.error?.message || 'Google Calendar event creation failed');
+    await prisma.appointment.update({ where: { id: appointment.id }, data: { googleEventId: event.id } });
+  }
+
+  const findMeetUrl = (data) => data.hangoutLink || data.conferenceData?.entryPoints?.find((p) => p.entryPointType === 'video')?.uri || null;
+  let meetUrl = findMeetUrl(event);
+  // Google may finish creating the conference asynchronously; poll the event briefly.
+  for (let attempt = 0; !meetUrl && attempt < 5; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    event = await getEvent(event.id || appointment.googleEventId);
+    meetUrl = findMeetUrl(event);
+  }
+  if (!meetUrl) throw new Error('Google Calendar event exists, but Meet link is not ready yet');
   await prisma.appointment.update({ where: { id: appointment.id }, data: { meetUrl } });
   return meetUrl;
 }
