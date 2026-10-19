@@ -41,7 +41,12 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json', limit:
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 
-app.get('/api/health', (req, res) => res.json({ ok: true, paymentMode: cfg.mock ? 'mock' : 'razorpay' }));
+app.get('/api/health', (req, res) => res.json({
+  ok: true,
+  paymentMode: cfg.mock ? 'mock' : 'razorpay',
+  googleMeetConfigured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN),
+  emailConfigured: Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL),
+}));
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
