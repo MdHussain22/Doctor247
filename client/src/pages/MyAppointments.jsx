@@ -25,6 +25,12 @@ export default function MyAppointments() {
           <div className="c" key={a.id}>
             <div className="row"><b>{a.doctor.name}</b><Badge s={a.status} /></div>
             <p className="m">{a.doctor.specialty}, {when(a.startsAt)}, {inr(a.fee)}</p>
+            {a.status !== 'CANCELLED' && a.status !== 'REFUNDED' && a.paymentStatus === 'PAID' && (
+              <div className="c">
+                <p><b>Doctor contact:</b> {a.doctor.phone ? <a href={'tel:' + a.doctor.phone}>{a.doctor.phone}</a> : 'The doctor has not added a contact number yet.'}</p>
+                {a.meetUrl ? <p><b>Google Meet:</b> <a href={a.meetUrl} target="_blank" rel="noreferrer">Join consultation</a></p> : <p className="m">Your booking is paid. The online meeting link will appear here once the meeting integration is configured.</p>}
+              </div>
+            )}
             {a.notes && <p><b>Consultation notes:</b> {a.notes}</p>}
             <div className="row">
               {live && <button onClick={() => setChat(a.id)}>Open chat</button>}
