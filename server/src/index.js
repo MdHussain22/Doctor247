@@ -39,7 +39,8 @@ app.use(cors({ origin: cfg.origin, credentials: true }));
 // The webhook needs the raw body for signature checks, so it is registered BEFORE express.json().
 app.post('/api/payments/webhook', express.raw({ type: 'application/json', limit: '200kb' }), webhook);
 
-app.use(express.json({ limit: '6mb' }));
+app.use('/api/medical-records', express.json({ limit: '6mb' }));
+app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 
 app.get('/api/health', (req, res) => res.json({
