@@ -77,3 +77,23 @@ small,.foot{color:var(--mu)}.foot{text-align:center;padding:24px 16px}
 .doctor-profile-heading h2{margin:0 0 5px}
 .doctor-profile-photo{width:76px;height:76px;flex:0 0 76px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--ac2);color:var(--ac);font:700 30px Fraunces,Georgia,serif}
 @media(max-width:420px){.doctor-photo-editor{align-items:flex-start;flex-direction:column}.doctor-profile-heading{align-items:flex-start}}
+
+
+/* Appointment medical records */
+.appointment-records{border-top:1px solid var(--bd);margin-top:14px;padding-top:12px}
+.appointment-records h4{font-size:15px;margin:8px 0}
+.record-item{border:1px solid var(--bd);border-radius:9px;padding:10px 12px;margin:8px 0;background:var(--bg)}
+.record-item .row{margin-top:0}
+.record-item p{margin:4px 0}
+.record-form{border:1px solid var(--bd);border-radius:10px;padding:12px;margin-top:12px}
+.record-form h4{margin-top:0}
+.record-form .g{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.record-form label{margin:6px 0}
+.prescription-details{border-top:1px dashed var(--bd);margin-top:8px;padding-top:8px}
+.prescription-details button{margin-top:8px}
+@media print{
+  body *{visibility:hidden}
+  .prescription-details,.prescription-details *{visibility:visible}
+  .prescription-details{position:absolute;left:0;top:0;width:100%;padding:24px;color:#111;background:#fff}
+  .prescription-details button{display:none}
+}
