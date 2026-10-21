@@ -13,6 +13,7 @@ const card = (d) => ({
   experienceYears: d.experienceYears,
   languages: d.languages,
   bio: d.bio,
+  profileImage: d.profileImage,
   fee: d.fee,
 });
 
