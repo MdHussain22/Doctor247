@@ -40,8 +40,11 @@ export default function DoctorProfile() {
     <>
       <Link className="ln" to="/">Back to doctors</Link>
       <div className="c">
-        <h2>{d.name} <span className="b">Verified</span></h2>
-        <p className="m">{d.specialty}, {d.experienceYears} years of experience</p>
+        <div className="doctor-profile-heading">
+          <div className="doctor-profile-photo">{d.profileImage ? <img src={d.profileImage} alt={d.name} /> : <span aria-hidden="true">{d.name.replace('Dr. ', '')[0]}</span>}</div>
+          <div><h2>{d.name} <span className="b">Verified</span></h2>
+          <p className="m">{d.specialty}, {d.experienceYears} years of experience</p></div>
+        </div>
         <p>{d.qualification}. Registration no. {d.registrationNo}</p>
         <p className="m">Speaks {d.languages}</p>
         {d.bio && <p>{d.bio}</p>}
