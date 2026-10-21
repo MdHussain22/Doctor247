@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, inr, when } from '../api';
 import { Badge, toast } from '../ui.jsx';
 import Chat from './Chat.jsx';
+import AppointmentRecords from './AppointmentRecords.jsx';
 
 async function compressProfileImage(file) {
   if (!file.type.startsWith('image/')) throw new Error('Choose an image file.');
@@ -98,6 +99,7 @@ export default function DoctorPortal() {
           <p className="m">{when(a.startsAt)}, {inr(a.fee)}</p>
           {a.meetUrl && <p><b>Google Meet:</b> <a href={a.meetUrl} target="_blank" rel="noreferrer">Join consultation</a></p>}
           {a.notes && <p><b>Notes:</b> {a.notes}</p>}
+          {['IN_PROGRESS', 'COMPLETED'].includes(a.status) && <AppointmentRecords appointment={a} role="DOCTOR" />}
           <div className="row">
             {(a.status === 'CONFIRMED' || a.status === 'IN_PROGRESS') && <button onClick={() => setChat(a.id)}>Open chat</button>}
             {a.status === 'CONFIRMED' && <button className="p" onClick={() => run(() => api(`/doctor/appointments/${a.id}/start`, { method: 'POST' }), 'Consultation started')}>Start consultation</button>}
