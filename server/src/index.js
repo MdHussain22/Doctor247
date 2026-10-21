@@ -14,6 +14,7 @@ import doctorRoutes from './routes/doctors.js';
 import appointmentRoutes from './routes/appointments.js';
 import paymentRoutes, { webhook } from './routes/payments.js';
 import doctorPortal from './routes/doctorPortal.js';
+import medicalRecords from './routes/medicalRecords.js';
 import adminRoutes from './routes/admin.js';
 import { initSocket } from './socket.js';
 
@@ -38,7 +39,7 @@ app.use(cors({ origin: cfg.origin, credentials: true }));
 // The webhook needs the raw body for signature checks, so it is registered BEFORE express.json().
 app.post('/api/payments/webhook', express.raw({ type: 'application/json', limit: '200kb' }), webhook);
 
-app.use(express.json({ limit: '100kb' }));
+app.use(express.json({ limit: '6mb' }));
 app.use(cookieParser());
 
 app.get('/api/health', (req, res) => res.json({
@@ -52,6 +53,7 @@ app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/doctor', doctorPortal);
+app.use('/api/medical-records', medicalRecords);
 app.use('/api/admin', adminRoutes);
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 
