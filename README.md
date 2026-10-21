@@ -76,6 +76,12 @@ If Google Calendar credentials are absent, the booking still confirms after paym
 - **Security basics:** bcrypt passwords, httpOnly cookie login, rate-limited auth routes, Helmet headers, input validation (zod), audit log of sensitive actions.
 - **Refunds:** patients can cancel until `REFUND_CUTOFF_HOURS` before the visit and get a full refund.
 
+## Medical reports and digital prescriptions
+
+Patients can attach a PDF or image (JPG/PNG/WebP, up to 4 MB) to a paid appointment. The assigned doctor can view the reports and issue a structured digital prescription from an in-progress or completed consultation. The patient can view and print the prescription from My appointments. Access is restricted to the appointment's patient and doctor.
+
+**Launch caution:** this first version stores report payloads in PostgreSQL to avoid relying on Render's ephemeral filesystem. Before using real patient data publicly, migrate the file payloads to private object storage (for example, a private S3/R2 bucket with short-lived signed URLs), configure encryption, access logging, backups, retention/deletion, and review the medical-data workflow with qualified privacy/compliance counsel. Do not treat the current MVP storage design as final production-grade medical records storage. The new Prisma model must be applied to the deployment database before using these screens.
+
 ## 7. Deploy
 
 1. `npm run install:all && npm run build` (builds `client/dist`).
@@ -88,9 +94,9 @@ In production Express serves the built React app and the API from one URL, so co
 ## 8. Not included yet (your next steps)
 
 - **OTP / email verification** and password reset (needs an SMS or email provider)
-- **Credential document uploads** and **report/prescription uploads** (add private object storage such as S3 or R2)
+- **Credential document uploads**, **private object storage migration** for report files, and stronger medical-record retention/deletion controls
 - **Video calls** (Agora or similar), **email/SMS reminders**, **doctor payouts and settlement** (needs a legally approved fee model first)
-- **Prescription PDFs**, patient consent records, data retention and deletion jobs
+- **Prescription PDF export** (the current prescription can be printed from the patient or doctor portal), patient consent records, automated tests, and production monitoring
 - Automated tests, database migrations (`npm run db:migrate` instead of `db:push`), monitoring and backups
 
 ## 9. Legal and compliance (important)
