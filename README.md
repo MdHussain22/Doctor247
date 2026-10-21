@@ -79,8 +79,9 @@ If Google Calendar credentials are absent, the booking still confirms after paym
 ## 7. Deploy
 
 1. `npm run install:all && npm run build` (builds `client/dist`).
-2. Set `NODE_ENV=production`, `DATABASE_URL`, a long random `JWT_SECRET` and the Razorpay variables on your host. For real payments set `PAYMENT_MODE=razorpay` and configure Razorpay test keys first; use live keys only after end-to-end testing. Add the optional Google Calendar and Resend variables above to enable Meet links and email confirmations.
-3. Run `cd server && npx prisma db push && npm run seed:admin`, then `npm start`.
+2. After schema changes, run `cd server && npx prisma db push` against the deployment database so new fields are created before using the updated app. On Render, use the service Shell if available, or run the command from a secure environment configured with the production `DATABASE_URL`.
+3. Set `NODE_ENV=production`, `DATABASE_URL`, a long random `JWT_SECRET` and the Razorpay variables on your host. For real payments set `PAYMENT_MODE=razorpay` and configure Razorpay test keys first; use live keys only after end-to-end testing. Add the optional Google Calendar and Resend variables above to enable Meet links and email confirmations.
+4. Run `cd server && npx prisma db push && npm run seed:admin`, then `npm start`.
 
 In production Express serves the built React app and the API from one URL, so cookies and sockets just work. Use a host that supports long-running Node servers and websockets (Render, Railway, Fly.io, a VPS). Vercel serverless will not run the Socket.IO chat. Use HTTPS only.
 
