@@ -11,14 +11,15 @@ r.use(async (req, res, next) => {
 });
 
 r.get('/me', (req, res) => {
-  const { id, specialty, qualification, registrationNo, experienceYears, languages, bio, fee, status, rejectionReason } = req.doctor;
-  res.json({ id, specialty, qualification, registrationNo, experienceYears, languages, bio, fee, status, rejectionReason, phone: req.user.phone || '' });
+  const { id, specialty, qualification, registrationNo, experienceYears, languages, bio, profileImage, fee, status, rejectionReason } = req.doctor;
+  res.json({ id, specialty, qualification, registrationNo, experienceYears, languages, bio, profileImage, fee, status, rejectionReason, phone: req.user.phone || '' });
 });
 
 const patch = z.object({
   fee: z.coerce.number().int().min(1).max(100000).optional(),
   languages: z.string().trim().max(100).optional(),
   bio: z.string().trim().max(600).optional(),
+  profileImage: z.union([z.string().max(1000000), z.null()]).optional(),
   phone: z.string().trim().max(24).optional(),
 });
 r.patch('/me', async (req, res) => {
