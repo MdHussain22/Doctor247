@@ -54,3 +54,12 @@ small,.foot{color:var(--mu)}.foot{text-align:center;padding:24px 16px}
 @media(max-width:760px){.specialty-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{padding-top:22px}}
 @media(max-width:380px){.specialty-grid{grid-template-columns:1fr}.specialty-card{min-height:unset}}
 
+
+/* Appointment slot booking buttons */
+.sl .slot-button{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:150px;padding:12px 15px;border:1px solid var(--ac);border-radius:10px;background:var(--ac2);color:var(--tx);text-align:left;font-weight:600;transition:transform .15s ease,background .15s ease}
+.sl .slot-button:hover:not(:disabled){background:var(--ac);color:var(--on);transform:translateY(-2px)}
+.sl .slot-button .slot-time{font-size:17px;font-weight:800;line-height:1.25}
+.sl .slot-button .slot-action{font-size:12px;font-weight:700;color:var(--ac)}
+.sl .slot-button:hover:not(:disabled) .slot-action{color:inherit}
+.sl .slot-button:disabled{opacity:.65;cursor:wait}
+@media(max-width:480px){.sl .slot-button{flex:1;min-width:135px}}
