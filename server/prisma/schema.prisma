@@ -62,6 +62,7 @@ model Doctor {
   experienceYears Int                @default(0)
   languages       String             @default("English")
   bio             String?
+  profileImage    String?            @db.Text
   fee             Int
   status          VerificationStatus @default(PENDING)
   rejectionReason String?
