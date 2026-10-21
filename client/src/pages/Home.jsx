@@ -103,7 +103,7 @@ export default function Home() {
         <div className="g">
           {(list || []).map((d) => (
             <div className="c doctor-card" key={d.id}>
-              <div className="av">{d.name.replace('Dr. ', '')[0]}</div>
+              <div className="av">{d.profileImage ? <img src={d.profileImage} alt={d.name} /> : d.name.replace('Dr. ', '')[0]}</div>
               <h3>{d.name}</h3>
               <p className="m">{d.specialty} · {d.experienceYears} years' experience</p>
               <p className="m">{d.qualification}</p>
