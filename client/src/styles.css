@@ -63,3 +63,17 @@ small,.foot{color:var(--mu)}.foot{text-align:center;padding:24px 16px}
 .sl .slot-button:hover:not(:disabled) .slot-action{color:inherit}
 .sl .slot-button:disabled{opacity:.65;cursor:wait}
 @media(max-width:480px){.sl .slot-button{flex:1;min-width:135px}}
+
+/* Optional doctor profile photo */
+.av{overflow:hidden}
+.av img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.doctor-photo-editor{display:flex;align-items:center;gap:14px;margin:12px 0 16px}
+.doctor-photo-preview{width:88px;height:88px;flex:0 0 88px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--ac2);color:var(--ac);font:700 34px Fraunces,Georgia,serif}
+.doctor-photo-preview img,.doctor-profile-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.doctor-photo-controls{min-width:0;flex:1}
+.doctor-photo-controls label{margin-top:0}
+.doctor-photo-controls input[type=file]{font-size:13px;width:100%}
+.doctor-profile-heading{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.doctor-profile-heading h2{margin:0 0 5px}
+.doctor-profile-photo{width:76px;height:76px;flex:0 0 76px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--ac2);color:var(--ac);font:700 30px Fraunces,Georgia,serif}
+@media(max-width:420px){.doctor-photo-editor{align-items:flex-start;flex-direction:column}.doctor-profile-heading{align-items:flex-start}}
