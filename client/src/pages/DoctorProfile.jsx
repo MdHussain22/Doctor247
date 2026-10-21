@@ -52,7 +52,10 @@ export default function DoctorProfile() {
           <div key={day}>
             <p className="m">{day}</p>
             <div className="sl">
-              {slots.map((s) => <button key={s.id} disabled={busy === s.id} onClick={() => book(s)}>{timeOnly(s.startsAt)}</button>)}
+              {slots.map((s) => <button className="slot-button" key={s.id} disabled={busy === s.id} onClick={() => book(s)} aria-label={`Book appointment for ${timeOnly(s.startsAt)}`}>
+                <span className="slot-time">{timeOnly(s.startsAt)}</span>
+                <span className="slot-action">{busy === s.id ? "Reserving…" : "Book this slot"} <span aria-hidden="true">→</span></span>
+              </button>)}
             </div>
           </div>
         ))}
