@@ -17,6 +17,7 @@ import doctorPortal from './routes/doctorPortal.js';
 import medicalRecords from './routes/medicalRecords.js';
 import adminRoutes from './routes/admin.js';
 import { initSocket } from './socket.js';
+import { ensureUpcomingSlots } from './services/availability.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -74,6 +75,23 @@ app.use((err, req, res, next) => {
 
 const server = http.createServer(app);
 initSocket(server);
+
+// Keep recurring availability rolling forward, even if nobody opens a doctor profile.
+async function refreshRecurringAvailability() {
+  try {
+    const doctors = await prisma.doctor.findMany({
+      where: { status: 'APPROVED', weeklySchedule: { not: null } },
+      select: { id: true, weeklySchedule: true, slotDurationMinutes: true },
+    });
+    for (const doctor of doctors) {
+      await ensureUpcomingSlots(prisma, doctor.id, doctor.weeklySchedule, doctor.slotDurationMinutes);
+    }
+  } catch (e) {
+    console.error('recurring availability refresh failed:', e.message);
+  }
+}
+refreshRecurringAvailability();
+setInterval(refreshRecurringAvailability, 6 * 60 * 60 * 1000);
 
 // Release slots whose payment window expired.
 setInterval(async () => {
