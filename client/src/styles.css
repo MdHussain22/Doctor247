@@ -77,3 +77,36 @@ small,.foot{color:var(--mu)}.foot{text-align:center;padding:24px 16px}
 .doctor-profile-heading h2{margin:0 0 5px}
 .doctor-profile-photo{width:76px;height:76px;flex:0 0 76px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--ac2);color:var(--ac);font:700 30px Fraunces,Georgia,serif}
 @media(max-width:420px){.doctor-photo-editor{align-items:flex-start;flex-direction:column}.doctor-profile-heading{align-items:flex-start}}
+
+
+/* Appointment medical records */
+.appointment-records{border-top:1px solid var(--bd);margin-top:14px;padding-top:12px}
+.appointment-records h4{font-size:15px;margin:8px 0}
+.record-item{border:1px solid var(--bd);border-radius:9px;padding:10px 12px;margin:8px 0;background:var(--bg)}
+.record-item .row{margin-top:0}
+.record-item p{margin:4px 0}
+.record-form{border:1px solid var(--bd);border-radius:10px;padding:12px;margin-top:12px}
+.record-form h4{margin-top:0}
+.record-form .g{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.record-form label{margin:6px 0}
+.prescription-details{border-top:1px dashed var(--bd);margin-top:8px;padding-top:8px}
+.prescription-details button{margin-top:8px}
+@media print{
+  body *{visibility:hidden}
+  .prescription-details,.prescription-details *{visibility:visible}
+  .prescription-details{position:absolute;left:0;top:0;width:100%;padding:24px;color:#111;background:#fff}
+  .prescription-details button{display:none}
+}
+
+
+/* Date-first booking flow inspired by modern telehealth booking */
+.booking-date-strip{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 14px;scroll-snap-type:x mandatory}
+.booking-date{display:flex;flex:0 0 76px;flex-direction:column;align-items:center;gap:3px;padding:10px 8px;border:1px solid var(--bd);border-radius:12px;background:var(--card);scroll-snap-align:start}
+.booking-date span,.booking-date small{font-size:12px;color:var(--mu)}
+.booking-date strong{font-size:23px;line-height:1.2}
+.booking-date.selected{background:var(--ac);color:var(--on);border-color:var(--ac)}
+.booking-date.selected span,.booking-date.selected small{color:inherit}
+.booking-times{padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg)}
+.booking-times .sl{margin-bottom:0}
+.booking-times .slot-button{min-width:112px;flex:1;max-width:180px}
+@media(max-width:480px){.booking-date{flex-basis:68px}.booking-times{padding:10px}}

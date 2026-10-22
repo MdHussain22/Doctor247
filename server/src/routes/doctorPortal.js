@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma, audit } from '../db.js';
 import { auth, role } from '../middleware/auth.js';
+import { ensureUpcomingSlots } from '../services/availability.js';
 
 const r = Router();
 r.use(auth, role('DOCTOR'));
@@ -11,8 +12,8 @@ r.use(async (req, res, next) => {
 });
 
 r.get('/me', (req, res) => {
-  const { id, specialty, qualification, registrationNo, experienceYears, languages, bio, profileImage, fee, status, rejectionReason } = req.doctor;
-  res.json({ id, specialty, qualification, registrationNo, experienceYears, languages, bio, profileImage, fee, status, rejectionReason, phone: req.user.phone || '' });
+  const { id, specialty, qualification, registrationNo, experienceYears, languages, bio, profileImage, fee, status, rejectionReason, weeklySchedule, slotDurationMinutes } = req.doctor;
+  res.json({ id, specialty, qualification, registrationNo, experienceYears, languages, bio, profileImage, fee, status, rejectionReason, weeklySchedule: weeklySchedule || [], slotDurationMinutes, phone: req.user.phone || '' });
 });
 
 const patch = z.object({
@@ -35,7 +36,36 @@ r.patch('/me', async (req, res) => {
   res.json({ ok: true });
 });
 
+
+const scheduleInput = z.object({
+  durationMinutes: z.coerce.number().int().min(5).max(120),
+  weeklySchedule: z.array(z.object({
+    weekday: z.coerce.number().int().min(0).max(6),
+    start: z.string().regex(/^([01]\\d|2[0-3]):[0-5]\\d$/),
+    end: z.string().regex(/^([01]\\d|2[0-3]):[0-5]\\d$/),
+  })).max(14),
+});
+r.put('/availability', async (req, res) => {
+  const parsed = scheduleInput.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message });
+  const { weeklySchedule, durationMinutes } = parsed.data;
+  for (const rule of weeklySchedule) {
+    const toMinutes = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+    if (toMinutes(rule.end) <= toMinutes(rule.start)) return res.status(400).json({ error: 'Each end time must be later than its start time on the same day' });
+  }
+  const deduped = [...new Map(weeklySchedule.map((rule) => [`${rule.weekday}-${rule.start}-${rule.end}`, rule])).values()];
+  await prisma.$transaction(async (tx) => {
+    await tx.doctor.update({ where: { id: req.doctor.id }, data: { weeklySchedule: deduped, slotDurationMinutes: durationMinutes } });
+    // Remove only future free slots with no appointments; held/booked slots are preserved.
+    await tx.slot.deleteMany({ where: { doctorId: req.doctor.id, startsAt: { gt: new Date() }, status: 'FREE', appointments: { none: {} } } });
+  });
+  const added = await ensureUpcomingSlots(prisma, req.doctor.id, deduped, durationMinutes);
+  await audit(req.user.id, 'AVAILABILITY_SCHEDULE_UPDATED', 'Doctor', req.doctor.id, { rules: deduped.length, durationMinutes, slotsGenerated: added });
+  res.json({ ok: true, weeklySchedule: deduped, durationMinutes, slotsGenerated: added });
+});
+
 r.get('/slots', async (req, res) => {
+  await ensureUpcomingSlots(prisma, req.doctor.id, req.doctor.weeklySchedule, req.doctor.slotDurationMinutes);
   res.json(
     await prisma.slot.findMany({
       where: { doctorId: req.doctor.id, startsAt: { gt: new Date() } },

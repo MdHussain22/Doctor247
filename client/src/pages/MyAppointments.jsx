@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, inr, when } from '../api';
 import { Badge, toast } from '../ui.jsx';
 import Chat from './Chat.jsx';
+import AppointmentRecords from './AppointmentRecords.jsx';
 
 export default function MyAppointments() {
   const [list, setList] = useState(null);
@@ -32,6 +33,7 @@ export default function MyAppointments() {
               </div>
             )}
             {a.notes && <p><b>Consultation notes:</b> {a.notes}</p>}
+            {a.paymentStatus === 'PAID' && !['CANCELLED', 'REFUNDED'].includes(a.status) && <AppointmentRecords appointment={a} role="PATIENT" />}
             <div className="row">
               {live && <button onClick={() => setChat(a.id)}>Open chat</button>}
               {a.status === 'CONFIRMED' && <button onClick={() => cancel(a)}>Cancel and refund</button>}

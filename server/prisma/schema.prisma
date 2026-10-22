@@ -63,6 +63,8 @@ model Doctor {
   languages       String             @default("English")
   bio             String?
   profileImage    String?            @db.Text
+  weeklySchedule  Json?
+  slotDurationMinutes Int             @default(15)
   fee             Int
   status          VerificationStatus @default(PENDING)
   rejectionReason String?
@@ -105,9 +107,32 @@ model Appointment {
   createdAt DateTime          @default(now())
   payment   Payment?
   messages  Message[]
+  records   MedicalRecord[]
 
   @@index([patientId])
   @@index([doctorId, status])
+}
+
+enum MedicalRecordType {
+  REPORT
+  PRESCRIPTION
+}
+
+model MedicalRecord {
+  id            String           @id @default(cuid())
+  appointmentId String
+  appointment   Appointment      @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  uploadedById  String
+  type          MedicalRecordType
+  title         String
+  mimeType      String
+  fileName      String
+  // MVP storage: private record payload in PostgreSQL. Move blobs to private object storage before scaling.
+  fileData      String           @db.Text
+  details       Json?
+  createdAt     DateTime         @default(now())
+
+  @@index([appointmentId, type, createdAt])
 }
 
 model Payment {
