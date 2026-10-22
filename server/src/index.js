@@ -80,10 +80,10 @@ initSocket(server);
 async function refreshRecurringAvailability() {
   try {
     const doctors = await prisma.doctor.findMany({
-      where: { status: 'APPROVED', weeklySchedule: { not: null } },
+      where: { status: 'APPROVED' },
       select: { id: true, weeklySchedule: true, slotDurationMinutes: true },
     });
-    for (const doctor of doctors) {
+    for (const doctor of doctors.filter((item) => Array.isArray(item.weeklySchedule) && item.weeklySchedule.length)) {
       await ensureUpcomingSlots(prisma, doctor.id, doctor.weeklySchedule, doctor.slotDurationMinutes);
     }
   } catch (e) {
