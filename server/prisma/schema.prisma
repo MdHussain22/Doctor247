@@ -63,6 +63,8 @@ model Doctor {
   languages       String             @default("English")
   bio             String?
   profileImage    String?            @db.Text
+  weeklySchedule  Json?
+  slotDurationMinutes Int             @default(15)
   fee             Int
   status          VerificationStatus @default(PENDING)
   rejectionReason String?
