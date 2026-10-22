@@ -80,18 +80,31 @@ If Google Calendar credentials are absent, the booking still confirms after paym
 
 Patients can attach a PDF or image (JPG/PNG/WebP, up to 4 MB) to a paid appointment. The assigned doctor can view the reports and issue a structured digital prescription from an in-progress or completed consultation. The patient can view and print the prescription from My appointments. Access is restricted to the appointment's patient and doctor.
 
-**Launch caution:** this first version stores report payloads in PostgreSQL to avoid relying on Render's ephemeral filesystem. Before using real patient data publicly, migrate the file payloads to private object storage (for example, a private S3/R2 bucket with short-lived signed URLs), configure encryption, access logging, backups, retention/deletion, and review the medical-data workflow with qualified privacy/compliance counsel. Do not treat the current MVP storage design as final production-grade medical records storage. The new Prisma model must be applied to the deployment database before using these screens.
+**Launch caution:** this first version stores report payloads in PostgreSQL to avoid relying on Render's ephemeral filesystem. Before using real patient data publicly, migrate the file payloads to private object storage (for example, a private S3/R2 bucket with short-lived signed URLs), configure encryption, access logging, backups, retention/deletion, and review the medical-data workflow with qualified privacy/compliance counsel. Do not treat the current MVP storage design as final production-grade medical records storage. The new Prisma model must be applied to the database before using these screens. After pulling this branch, run the local commands below from the project root; do not run them against production until you have a verified backup and have confirmed the `DATABASE_URL` target.
 
-## 7. Deploy
+## 7. Applying the medical-record schema locally
+
+From the repository root after pulling the feature branch:
+
+```powershell
+cd server
+npx prisma validate
+npx prisma generate
+npx prisma db push
+```
+
+`db push` updates the database named by `server/.env`'s `DATABASE_URL` to match `server/prisma/schema.prisma`; it does not migrate data to a different database. Before running it, verify the host/database name in that connection string and use a disposable or backed-up development database. Do not paste the connection string into chat or commit `.env`. If `db push` fails, stop and share the error with secrets removed. Then restart the backend with `npm run dev` in `server/` and retry the report upload. This schema step is likely necessary because Prisma Client generation alone does not create database tables.
+
+## 8. Deploy
 
 1. `npm run install:all && npm run build` (builds `client/dist`).
-2. After schema changes, run `cd server && npx prisma db push` against the deployment database so new fields are created before using the updated app. On Render, use the service Shell if available, or run the command from a secure environment configured with the production `DATABASE_URL`.
-3. Set `NODE_ENV=production`, `DATABASE_URL`, a long random `JWT_SECRET` and the Razorpay variables on your host. For real payments set `PAYMENT_MODE=razorpay` and configure Razorpay test keys first; use live keys only after end-to-end testing. Add the optional Google Calendar and Resend variables above to enable Meet links and email confirmations.
-4. Run `cd server && npx prisma db push && npm run seed:admin`, then `npm start`.
+2. Back up the production database and confirm the production `DATABASE_URL` before applying schema changes. Use a controlled migration process; do not point a local `.env` at production casually.
+3. Set `NODE_ENV=production`, `DATABASE_URL`, a long random `JWT_SECRET` and existing payment environment variables on your host. Payment code and settings are not changed by this feature branch. Add the optional Google Calendar and Resend variables above to enable Meet links and email confirmations.
+4. Run `cd server && npm run seed:admin` only if the production admin has not already been created, then start the service.
 
 In production Express serves the built React app and the API from one URL, so cookies and sockets just work. Use a host that supports long-running Node servers and websockets (Render, Railway, Fly.io, a VPS). Vercel serverless will not run the Socket.IO chat. Use HTTPS only.
 
-## 8. Not included yet (your next steps)
+## 9. Not included yet (your next steps)
 
 - **OTP / email verification** and password reset (needs an SMS or email provider)
 - **Credential document uploads**, **private object storage migration** for report files, and stronger medical-record retention/deletion controls
@@ -99,7 +112,7 @@ In production Express serves the built React app and the API from one URL, so co
 - **Prescription PDF export** (the current prescription can be printed from the patient or doctor portal), patient consent records, automated tests, and production monitoring
 - Automated tests, database migrations (`npm run db:migrate` instead of `db:push`), monitoring and backups
 
-## 9. Legal and compliance (important)
+## 10. Legal and compliance (important)
 
 This is software, not legal clearance. Before real patients use it:
 - Verify every doctor's registration on the official register and keep the evidence.
