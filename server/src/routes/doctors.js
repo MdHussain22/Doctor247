@@ -68,7 +68,8 @@ r.get('/:id', async (req, res) => {
       OR: [{ status: 'FREE' }, { status: 'HELD', heldUntil: { lt: now } }],
     },
     orderBy: { startsAt: 'asc' },
-    take: 60,
+    // Return the complete upcoming calendar; short consultations can exceed 60 slots.
+    take: 1000,
     select: { id: true, startsAt: true },
   });
   res.json({ ...card(d), slots });
