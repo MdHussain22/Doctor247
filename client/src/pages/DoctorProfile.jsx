@@ -16,7 +16,11 @@ export default function DoctorProfile() {
   const [busy, setBusy] = useState('');
   const [selectedDay, setSelectedDay] = useState('');
 
-  const dayKey = (date) => new Date(date).toLocaleDateString('en-CA');
+  const dayKey = (date) => {
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(date));
+    const values = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+    return `${values.year}-${values.month}-${values.day}`;
+  };
   const load = () => api('/doctors/' + id).then((data) => {
     setD(data);
     setSelectedDay((current) => current && data.slots.some((slot) => dayKey(slot.startsAt) === current) ? current : data.slots.length ? dayKey(data.slots[0].startsAt) : '');
@@ -41,7 +45,7 @@ export default function DoctorProfile() {
     const key = dayKey(slot.startsAt);
     (days[key] = days[key] || []).push(slot);
   });
-  const dayLabel = (key) => new Date(`${key}T12:00:00`).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+  const dayLabel = (key) => new Date(`${key}T12:00:00`).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', day: 'numeric', month: 'short' });
   const selectedSlots = days[selectedDay] || [];
 
   return (
@@ -63,9 +67,9 @@ export default function DoctorProfile() {
         {!!Object.keys(days).length && <div className="booking-date-strip" role="group" aria-label="Available dates">
           {Object.keys(days).sort().map((day) => (
             <button type="button" key={day} className={`booking-date${selectedDay === day ? ' selected' : ''}`} aria-pressed={selectedDay === day} onClick={() => setSelectedDay(day)}>
-              <span>{new Date(`${day}T12:00:00`).toLocaleDateString('en-IN', { weekday: 'short' })}</span>
+              <span>{new Date(`${day}T12:00:00`).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short' })}</span>
               <strong>{new Date(`${day}T12:00:00`).getDate()}</strong>
-              <small>{new Date(`${day}T12:00:00`).toLocaleDateString('en-IN', { month: 'short' })}</small>
+              <small>{new Date(`${day}T12:00:00`).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short' })}</small>
             </button>
           ))}
         </div>}
