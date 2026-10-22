@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
+import { ensureUpcomingSlots } from '../services/availability.js';
 
 // PUBLIC routes. A doctor is only ever listed here after an admin has set status = APPROVED.
 const r = Router();
@@ -58,6 +59,7 @@ r.get('/:id', async (req, res) => {
     include: { user: { select: { name: true } } },
   });
   if (!d) return res.status(404).json({ error: 'Doctor not found' });
+  await ensureUpcomingSlots(prisma, d.id, d.weeklySchedule, d.slotDurationMinutes);
   const now = new Date();
   const slots = await prisma.slot.findMany({
     where: {
