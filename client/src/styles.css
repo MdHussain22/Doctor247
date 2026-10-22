@@ -97,3 +97,16 @@ small,.foot{color:var(--mu)}.foot{text-align:center;padding:24px 16px}
   .prescription-details{position:absolute;left:0;top:0;width:100%;padding:24px;color:#111;background:#fff}
   .prescription-details button{display:none}
 }
+
+
+/* Date-first booking flow inspired by modern telehealth booking */
+.booking-date-strip{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 14px;scroll-snap-type:x mandatory}
+.booking-date{display:flex;flex:0 0 76px;flex-direction:column;align-items:center;gap:3px;padding:10px 8px;border:1px solid var(--bd);border-radius:12px;background:var(--card);scroll-snap-align:start}
+.booking-date span,.booking-date small{font-size:12px;color:var(--mu)}
+.booking-date strong{font-size:23px;line-height:1.2}
+.booking-date.selected{background:var(--ac);color:var(--on);border-color:var(--ac)}
+.booking-date.selected span,.booking-date.selected small{color:inherit}
+.booking-times{padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--bg)}
+.booking-times .sl{margin-bottom:0}
+.booking-times .slot-button{min-width:112px;flex:1;max-width:180px}
+@media(max-width:480px){.booking-date{flex-basis:68px}.booking-times{padding:10px}}
