@@ -27,7 +27,7 @@ jobs:
       - name: Install server dependencies
         run: npm ci --prefix server
       - name: Validate Prisma schema
-        run: npx --prefix server prisma validate
+        run: cd server && npx prisma validate
       - name: Generate Prisma Client
         run: npm --prefix server run postinstall
       - name: Install client dependencies
