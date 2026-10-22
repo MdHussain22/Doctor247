@@ -14,8 +14,14 @@ export default function DoctorProfile() {
   const [err, setErr] = useState('');
   const [pay, setPay] = useState(null);
   const [busy, setBusy] = useState('');
+  const [selectedDay, setSelectedDay] = useState('');
 
-  const load = () => api('/doctors/' + id).then(setD).catch((e) => setErr(e.message));
+  const dayKey = (date) => new Date(date).toLocaleDateString('en-CA');
+  const load = () => api('/doctors/' + id).then((data) => {
+    setD(data);
+    setSelectedDay((current) => current && data.slots.some((slot) => dayKey(slot.startsAt) === current) ? current : data.slots.length ? dayKey(data.slots[0].startsAt) : '');
+    setErr('');
+  }).catch((e) => setErr(e.message));
   useEffect(() => { load(); }, [id]);
 
   async function book(slot) {
@@ -31,10 +37,12 @@ export default function DoctorProfile() {
   if (!d) return <p className="m">Loading…</p>;
 
   const days = {};
-  d.slots.forEach((s) => {
-    const k = new Date(s.startsAt).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
-    (days[k] = days[k] || []).push(s);
+  d.slots.forEach((slot) => {
+    const key = dayKey(slot.startsAt);
+    (days[key] = days[key] || []).push(slot);
   });
+  const dayLabel = (key) => new Date(`${key}T12:00:00`).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+  const selectedSlots = days[selectedDay] || [];
 
   return (
     <>
@@ -49,20 +57,28 @@ export default function DoctorProfile() {
         <p className="m">Speaks {d.languages}</p>
         {d.bio && <p>{d.bio}</p>}
         <h3>Consultation fee {inr(d.fee)}</h3>
-        <h3>Available times</h3>
+        <h3>Choose a date and time</h3>
+        <p className="m">Select a date to see available consultation times.</p>
         {!d.slots.length && <p className="m">No open slots right now. Check back soon.</p>}
-        {Object.entries(days).map(([day, slots]) => (
-          <div key={day}>
-            <p className="m">{day}</p>
-            <div className="sl">
-              {slots.map((s) => <button className="slot-button" key={s.id} disabled={busy === s.id} onClick={() => book(s)} aria-label={`Book appointment for ${timeOnly(s.startsAt)}`}>
-                <span className="slot-time">{timeOnly(s.startsAt)}</span>
-                <span className="slot-action">{busy === s.id ? "Reserving…" : "Book this slot"} <span aria-hidden="true">→</span></span>
-              </button>)}
-            </div>
+        {!!Object.keys(days).length && <div className="booking-date-strip" role="group" aria-label="Available dates">
+          {Object.keys(days).sort().map((day) => (
+            <button type="button" key={day} className={`booking-date${selectedDay === day ? ' selected' : ''}`} aria-pressed={selectedDay === day} onClick={() => setSelectedDay(day)}>
+              <span>{new Date(`${day}T12:00:00`).toLocaleDateString('en-IN', { weekday: 'short' })}</span>
+              <strong>{new Date(`${day}T12:00:00`).getDate()}</strong>
+              <small>{new Date(`${day}T12:00:00`).toLocaleDateString('en-IN', { month: 'short' })}</small>
+            </button>
+          ))}
+        </div>}
+        {selectedDay && <div className="booking-times">
+          <div className="row"><b>{dayLabel(selectedDay)}</b><span className="b">{selectedSlots.length} available</span></div>
+          <div className="sl">
+            {selectedSlots.map((s) => <button className="slot-button" key={s.id} disabled={busy === s.id} onClick={() => book(s)} aria-label={`Book appointment for ${timeOnly(s.startsAt)}`}>
+              <span className="slot-time">{timeOnly(s.startsAt)}</span>
+              <span className="slot-action">{busy === s.id ? "Reserving…" : "Book this time"} <span aria-hidden="true">→</span></span>
+            </button>)}
           </div>
-        ))}
-        <p className="m">Your slot is held for a few minutes while you pay, so nobody else can book it.</p>
+        </div>}
+        <p className="m">A selected time is held briefly during checkout. Once booked, it disappears from availability.</p>
       </div>
       {pay && (
         <PayModal
