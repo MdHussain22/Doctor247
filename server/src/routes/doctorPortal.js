@@ -41,8 +41,8 @@ const scheduleInput = z.object({
   durationMinutes: z.coerce.number().int().min(5).max(120),
   weeklySchedule: z.array(z.object({
     weekday: z.coerce.number().int().min(0).max(6),
-    start: z.string().regex(/^([01]\\d|2[0-3]):[0-5]\\d$/),
-    end: z.string().regex(/^([01]\\d|2[0-3]):[0-5]\\d$/),
+    start: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+    end: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   })).max(14),
 });
 r.put('/availability', async (req, res) => {
